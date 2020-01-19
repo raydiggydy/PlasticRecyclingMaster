@@ -1,0 +1,42 @@
+import java.util.*
+import javax.mail.*
+import javax.mail.internet.InternetAddress
+import javax.mail.internet.MimeMessage
+
+class myMail {
+    val from = "<from email>@gmail.com"
+    val password = "<app password>"
+    val to = "<to email>@gmail.com"
+
+    fun send() {
+        println("TLS Email Start")
+        val props = Properties()
+        props.put("mail.smtp.host", "smtp.gmail.com")
+        props.put("mail.smtp.port", "587")
+        props.put("mail.smtp.auth", "true")
+        props.put("mail.smtp.starttls.enable", "true")
+
+        val session = Session.getInstance(props,
+            object : Authenticator() {
+                override fun getPasswordAuthentication(): PasswordAuthentication {
+                    return PasswordAuthentication(from, password)
+                }
+            }
+        )
+        try {
+            val mm = MimeMessage(session)
+            mm.setFrom(InternetAddress(from))
+            mm.addRecipient(Message.RecipientType.TO, InternetAddress(to))
+            mm.subject = "CIT mailing test."
+            mm.setText("This is mail body")
+            Transport.send(mm)
+            println("done")
+        } catch(e : MessagingException){
+            e.printStackTrace()
+        }
+    }
+}
+fun main() {
+    val mymail = myMail()
+    mymail.send()
+}
