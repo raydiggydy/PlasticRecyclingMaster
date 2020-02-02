@@ -1,0 +1,89 @@
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.SQLException
+
+fun main() {
+    val conn = connect("1.168.0.53:60000")
+    //테이블 이름
+    val table_name = "tree"
+    //열 이름
+    val columns= arrayOf("이름","나이","이메일")
+    //자료형 이름
+    val datatypes = arrayOf("text","int","text")
+    //제한자
+    val constraints = arrayOf("NOT NULL","NOT NULL","NOT NULL")
+    if (conn != null){
+        create(conn,table_name,columns,datatypes, constraints)
+    }
+}
+fun connect(server: String) : Connection? {
+    val db = "raydb"
+    val db_connect_string = "jdbc:sqlserver://$server;database=$db"
+    val db_userid = "cit"
+    val db_password = "citcitcit"
+    var conn: Connection? = null
+
+    try {
+        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
+        conn = DriverManager.getConnection(db_connect_string, db_userid, db_password)
+        println("MS-SQL 서버연결에 성공했습니다")
+    } catch(sqle:SQLException) {
+        println("SQLException 오류: $sqle")
+    } catch(cnfe: ClassNotFoundException){
+        println("ClassNotFoundException 오류 : $cnfe")
+    }
+
+    return conn
+}
+/* CRUID
+C:CREATE
+R:READ
+U:UPDATE
+I:INSERT
+D:DELETE
+ */
+
+fun drop(conn:Connection, tablename: String){
+    val query = "DROP TABLE IF EXISTS $tablename"
+    println(query)
+    try{
+        val statement = conn.createStatement()
+        statement.execute(query)
+        println("테이블 삭제 성공 : $tablename")
+    } catch(sqle:SQLException) {
+        println("SQLException : $sqle")
+    }
+}
+fun read(conn:Connection,tablename : String, where:String){
+     val query = "SELECT *FROM $tablename $where"
+     println(query)
+     val rs : ResultSet
+     try {
+         val statement = conn.createStatement()
+         rs = statement.executeQuery(query)
+         println("테이블 읽기 성공 : $tablename")
+         while(rs.next()){
+             println(rs.getInt(2))
+         }
+     } catch (sqle: SQLException){
+         println("SQLException : $sqle")
+     }
+}
+
+fun create(conn:Connection, tablename: String, columns:Array<String>,datatypes:Array<String>,constraints: Array<String>){
+    var query = "CREATE TABLE $tablename ("
+    for (i in columns.indices){
+        query += columns[i] +" " + datatypes[i] + " "+constraints[i]+", "
+    }
+    query = query.substring(0, query.length-2)+ ");"
+    println(query)
+
+    try {
+        val statement = conn.createStatement()
+        statement.execute(query)
+        println("테이블 생성 성공 : $tablename")
+    } catch(sqle: SQLException) {
+        println("SQLException : $sqle")
+    }
+}
